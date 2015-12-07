@@ -101,12 +101,9 @@ op_list = [
     (re_rs, rs_test),
 ]
 
-def partone(f):
+def partone(lines):
     r = re.compile(r'((?:turn on)|(?:turn off)|(?:toggle)) ([0-9]+),([0-9]+) through ([0-9]+),([0-9]+)')
     a = {}
-    # gather input
-    with open(sys.argv[1], 'r') as f:
-        lines = f.readlines()
 
     # incrementally work through the rest, setting values derived from
     # existing literally set values, until we've exhausted all progress (stuck)
@@ -114,7 +111,7 @@ def partone(f):
     lastLen = 0
     rem = lines[:]  # copy
     while len(rem) != lastLen:
-        print '>> ' + str(len(rem))
+        # print '>> ' + str(len(rem))
         lastLen = len(rem)  # track progress
         for r in rem:
             for rgx, op in op_list:
@@ -130,14 +127,18 @@ def partone(f):
 
     return a['a']
 
-def parttwo(f):
-    return ''
+def parttwo(lines):
+    lines.remove('44430 -> b\n')
+    lines.append('3176 -> b\n')
+    return partone(lines)
 
 if __name__ == '__main__':
     # 1. part one
-    answer = partone(sys.argv[1])
+    with open(sys.argv[1], 'r') as f:
+        answer = partone(f.readlines())
     print 'Answer to part 1: ' + str(answer)
 
     # 2. part two
-    answer = parttwo(sys.argv[1])
+    with open(sys.argv[1], 'r') as f:
+        answer = parttwo(f.readlines())
     print 'Answer to part 2: ' + str(answer)
