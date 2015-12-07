@@ -3,7 +3,7 @@ import sys, re
 VOWELS = 'aeiou'
 BADSTRINGS = ['ab', 'cd', 'pq', 'xy']
 
-def isnice(astring):
+def isnice1(astring):
     # 1. count vowels
     v = 0
     for c in VOWELS:
@@ -23,10 +23,25 @@ def isnice(astring):
 
     return True
 
+def isnice2(astring):
+    m = re.search(r'([a-z]{2}).*(\1)', astring)
+    if not m:
+        return False
+
+    m = re.search(r'([a-z]{1})[\s\S](\1)', astring)
+    if not m:
+        return False
+
+    return True
+
 if __name__ == '__main__':
-    nice = 0
+    nice1 = 0
+    nice2 = 0
     with open(sys.argv[1], 'r') as f:
         for line in f.readlines():
-            if isnice(line):
-                nice += 1
-    print nice
+            if isnice1(line):
+                nice1 += 1
+            if isnice2(line):
+                nice2 += 1
+    print 'Answer to question 1: ' + str(nice1)
+    print 'Answer to question 2: ' + str(nice2)
