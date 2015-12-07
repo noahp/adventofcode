@@ -1,69 +1,137 @@
 import sys, re
 import array
 
-def turnon_1(x):
-    return 1
+def toint(a):
+    try:
+        return int(a)
+    except ValueError:
+        return a
 
-def turnoff_1(x):
-    return 0
+def and_test(inargs, defined):
+    # try to reconcile operation with existing data
+    a,b = inargs[:2]
+    a = toint(a)
+    b = toint(b)
+    if type(a) is str:
+        if a in defined:
+            a = defined[a]
+        else:
+            return None
 
-def toggle_1(x):
-    if x == 1:
-        return 0
-    else:
-        return 1
+    if type(b) is str:
+        if b in defined:
+            b = defined[b]
+        else:
+            return None
+    return a & b
 
-def turnon_2(x):
-    return x + 1
+def or_test(inargs, defined):
+    # try to reconcile operation with existing data
+    a,b = inargs[:2]
+    a = toint(a)
+    b = toint(b)
+    if type(a) is str:
+        if a in defined:
+            a = defined[a]
+        else:
+            return None
 
-def turnoff_2(x):
-    if x > 1:
-        return x - 1
-    else:
-        return 0
+    if type(b) is str:
+        if b in defined:
+            b = defined[b]
+        else:
+            return None
+    return a | b
 
-def toggle_2(x):
-    return x + 2
+def set_test(inargs, defined):
+    a = inargs[0]
+    a = toint(a)
+    if isinstance(a, str):
+        if a in defined:
+            a = defined[a]
+        else:
+            return None
+    return a
 
-cmdmap_1 = {
-    'turn on':turnon_1,
-    'turn off':turnoff_1,
-    'toggle':toggle_1
-}
+def not_test(inargs, defined):
+    a = inargs[0]
+    a = toint(a)
+    if type(a) is str:
+        if a in defined:
+            a = defined[a]
+        else:
+            return None
+    return (~a) & 0xFFFF
 
-cmdmap_2 = {
-    'turn on':turnon_2,
-    'turn off':turnoff_2,
-    'toggle':toggle_2
-}
+def ls_test(inargs, defined):
+    a,b = inargs[:2]
+    a = toint(a)
+    b = toint(b)
+    if type(a) is str:
+        if a in defined:
+            a = defined[a]
+        else:
+            return None
+    return a << b
+
+def rs_test(inargs, defined):
+    a,b = inargs[:2]
+    a = toint(a)
+    b = toint(b)
+    if type(a) is str:
+        if a in defined:
+            a = defined[a]
+        else:
+            return None
+    return a >> b
+
+re_and = re.compile(r'^(?:([a-z0-9]+) AND ([a-z0-9]+) -> ([a-z]+))')
+re_or = re.compile(r'^(?:([a-z0-9]+) OR ([a-z0-9]+) -> ([a-z]+))')
+re_set = re.compile(r'^(?:([a-z0-9]+) -> ([a-z]+))')   # signal copied
+re_not = re.compile(r'^(?:NOT ([a-z0-9]+) -> ([a-z]+))')
+re_ls = re.compile(r'(?:([a-z0-9]+) LSHIFT ([0-9]+) -> ([a-z]+))')
+re_rs = re.compile(r'(?:([a-z0-9]+) RSHIFT ([0-9]+) -> ([a-z]+))')
+
+op_list = [
+    (re_and, and_test),
+    (re_or, or_test),
+    (re_set, set_test),
+    (re_not, not_test),
+    (re_ls, ls_test),
+    (re_rs, rs_test),
+]
 
 def partone(f):
     r = re.compile(r'((?:turn on)|(?:turn off)|(?:toggle)) ([0-9]+),([0-9]+) through ([0-9]+),([0-9]+)')
-    a = [[0] *1000] * 1000
+    a = {}
+    # gather input
     with open(sys.argv[1], 'r') as f:
-        for line in f.readlines():
-            m = r.search(line)
-            if m:
-                cmd, xstart, ystart, xend, yend = m.groups()
-                xstart, ystart, xend, yend = map(int, (xstart, ystart, xend, yend))
+        lines = f.readlines()
 
-                for x in xrange(xstart, xend + 1):
-                    a[x] = a[x][:ystart] + map(cmdmap_1[cmd], a[x][ystart:yend+1]) + a[x][yend + 1:]
-    return sum([sum(c) for c in a])
+    # incrementally work through the rest, setting values derived from
+    # existing literally set values, until we've exhausted all progress (stuck)
+    # or found the answer
+    lastLen = 0
+    rem = lines[:]  # copy
+    while len(rem) != lastLen:
+        print '>> ' + str(len(rem))
+        lastLen = len(rem)  # track progress
+        for r in rem:
+            for rgx, op in op_list:
+                m = rgx.search(r)
+                if m:
+                    test = op(m.groups(), a)
+                    if test is not None:
+                        a[m.groups()[-1]] = test
+                        # print m.groups()[-1], '%X'%test
+                        rem.remove(r)
+                        if m.groups()[-1] is 'a':
+                            break
+
+    return a['a']
 
 def parttwo(f):
-    r = re.compile(r'((?:turn on)|(?:turn off)|(?:toggle)) ([0-9]+),([0-9]+) through ([0-9]+),([0-9]+)')
-    a = [[0] *1000] * 1000
-    with open(sys.argv[1], 'r') as f:
-        for line in f.readlines():
-            m = r.search(line)
-            if m:
-                cmd, xstart, ystart, xend, yend = m.groups()
-                xstart, ystart, xend, yend = map(int, (xstart, ystart, xend, yend))
-
-                for x in xrange(xstart, xend + 1):
-                    a[x] = a[x][:ystart] + map(cmdmap_2[cmd], a[x][ystart:yend+1]) + a[x][yend + 1:]
-    return sum([sum(c) for c in a])
+    return ''
 
 if __name__ == '__main__':
     # 1. part one
