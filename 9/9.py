@@ -1,4 +1,4 @@
-import sys, re, pprint
+import sys, re, pprint, itertools
 
 def traverse(allList, graph, thisList):
     for x in allList:
@@ -27,23 +27,14 @@ if __name__ == '__main__':
                 c[k] = int(m.group(3))
 
 
-    # TODO brute force,search the graph for viable routes and find the shortest
+    # use permutations, because there are routes between all elements
     pprint.pprint(c)
     alist = []
-    for k in g.keys():
-        l = [k] + g[k]
+    for p in itertools.permutations(g.keys()):
         a = 0
-        for i in xrange(len(l)-1):
-            a += c[''.join(sorted([l[i-1],l[i]]))]
+        for i in xrange(len(p)-1):
+            a += c[''.join(sorted([p[i-1],p[i]]))]
         alist.append(a)
 
     print 'Answer to part 1: ' + str(min(alist))
-
-    # # # 2. part two
-    # c = 0
-    # n = 0
-    # with open(sys.argv[1], 'r') as f:
-    #     for line in f.readlines():
-    #         c += len(line.strip())
-    #         n += len('"'+re.escape(line.strip())+'"')
-    # print 'Answer to part 2: ' + str(n-c)
+    print 'Answer to part 2: ' + str(max(alist))
