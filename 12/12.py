@@ -8,3 +8,23 @@ print 'Answer to problem 1: ' + str(sum([int(x) for x in m]))
 # 2. ok, json parsing time
 import json
 m = json.loads(instr)
+
+def sumJson(j):
+    a = 0
+    if type(j) is type([]):
+        for e in j:
+            a += sumJson(e)
+    elif type(j) is type({}):
+        if 'red' in j.keys():
+            return 0
+        if 'red' in j.values():
+            return 0
+        for e in j.keys():
+            a += sumJson(j[e])
+    elif type(j) is type('string'):
+        return 0
+    elif type(j) is type(1):
+        a += j
+    return a
+
+print sumJson(m)
