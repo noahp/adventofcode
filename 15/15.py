@@ -1,8 +1,9 @@
-import re, sys, itertools
+import re, sys, itertools, pprint
+from operator import mul
 
 def score(amount, props):
     ''' Score of a particular amount of an ingredient '''
-    return max(0, sum([amount * c for c in props]))
+    return [amount * c for c in props]
 
 if __name__ == '__main__':
     a = []
@@ -12,10 +13,19 @@ if __name__ == '__main__':
             if m:
                 x = [m.group(1),] + [int(c) for c in m.groups()[1:]]
                 a.append(x)
+    pprint.pprint(a)
 
-    # execute the race
+    # execute the permutations, ugly brute force search
     m = []
-    for i in itertools.permutations([range(1,5)]*len(m)):
-        print i
+    m2 = []
+    for i in itertools.permutations(xrange(0,100), len(a)):
+        if sum(i) != 100:
+            continue
+        scores = zip(*[score(i[idx], x[1:]) for idx,x in enumerate(a)])
+        total = reduce(mul,[max(0, sum(c)) for c in scores[:-1]])
+        m.append(total)
+        if sum(scores[4]) == 500:
+            m2.append(total)
 
-    #print 'Answer to part 1: ' + str(max(m))
+    print 'Answer to part 1: ' + str(max(m))
+    print 'Answer to part 2: ' + str(max(m2))
