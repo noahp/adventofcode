@@ -1,4 +1,4 @@
-import re, sys
+import re, sys, itertools
 
 def score(amount, props):
     ''' Score of a particular amount of an ingredient '''
@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
     # execute the race
     m = []
-    for i in xrange(100):
-        pass
+    for i in itertools.permutations([range(1,5)]*len(m)):
+        print i
 
-    print 'Answer to part 1: ' + str(max(m))
+    #print 'Answer to part 1: ' + str(max(m))
