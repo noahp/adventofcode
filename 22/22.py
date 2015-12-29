@@ -1,46 +1,109 @@
-import re, sys, itertools, copy
+import re, sys, copy, random
 
 # name, cost, damage, heal, manaCharge, armor, effectLength
 spells = [
-    ('MagicMissle',      53, 4, 0, 0, 0, 0)
-    ('Drain',            53, 4, 0, 0, 0, 0)
-    ('Shield',           53, 4, 0, 0, 0, 0)
-    ('Poison',           53, 4, 0, 0, 0, 0)
-    ('Recharge',         53, 4, 0, 0, 0, 0)
+    ('MagicMissle',      53, 4, 0, 0, 0, 0),
+    ('Drain',            73, 2, 2, 0, 0, 0),
+    ('Shield',           113, 0, 0, 0, 7, 6),
+    ('Poison',           173, 0, 0, 0, 0, 6),
+    ('Recharge',         229, 0, 0, 101, 0, 5),
 ]
+minspellcost = min([c[1] for c in spells])
 
+class state(object):
+    def __init__(self, player, boss, effects={}, manaspent=0, playerturn=True):
+        self.player = copy.deepcopy(player)
+        self.boss = copy.deepcopy(boss)
+        self.effects = copy.deepcopy(effects)
+        self.manaspent = manaspent
+        self.playerturn = playerturn
 
-def battle(player, boss, turn, activeEffects, manaSpent, winCosts, test=False):
+    def canCast(self, spell):
+        '''' Can the player cast the specified spell at this time?'''
+        if spell[0] not in self.effects:
+            if spell[1] <= self.player['mana']:
+                return True
+        return False
+
+    def spellsAvailable(self):
+        return [c for c in spells if self.canCast(c)]
+
+    def cast(self, spell):
+        # print spell
+        self.player['mana'] -= spell[1]
+        self.manaspent += spell[1]
+        # activate effect
+        if spell[6] > 0:
+            self.effects[spell[0]] = spell[6]
+        # apply damage to boss
+        if spell[2] > 0:
+            self.boss['hp'] -= spell[2]
+        # apply healing to player
+        if spell[3] > 0:
+            self.player['hp'] += spell[3]
+
+    def __str__(self):
+        return ''.join(map(str, (self.player, self.boss, self.effects, self.playerturn)))
+
+def runEffects(thisState):
     # apply active effects and decrement timers
-    pass
+    if 'Shield' in thisState.effects:
+        thisState.player['armor'] = 7
+        thisState.effects['Shield'] -=1
+        if thisState.effects['Shield'] == 0:
+            del thisState.effects['Shield']
+    if 'Poison' in thisState.effects:
+        thisState.boss['hp'] -= 3
+        thisState.effects['Poison'] -=1
+        if thisState.effects['Poison'] == 0:
+            del thisState.effects['Poison']
+    if 'Recharge' in thisState.effects:
+        thisState.player['mana'] += 101
+        thisState.effects['Recharge'] -=1
+        if thisState.effects['Recharge'] == 0:
+            del thisState.effects['Recharge']
 
     # check for end conditions
-    if player['hp'] <= 0 or player['mana'] < :
+    if thisState.player['hp'] <= 0 or thisState.player['mana'] < minspellcost:
         # loss
-        return winCosts
-    if boss['hp'] <= 0:
+        # print player,boss
+        # print 'loss'
+        return float('inf')
+    if thisState.boss['hp'] <= 0:
         # win
-        return winCosts + [manaSpent]
+        # print thisState.manaspent
+        return thisState.manaspent
 
-    # execute turn
-    if turn == 0:
-        # player; recurse over allowed options, to test each path the battle
-        # can take.
-        turn = 1
-        for s in spells:
-            if canCast(s, player, activeEffects):
-                pass
+    return 0
 
-        if test:
-            print boss
-    else:
-        # boss
-        turn = 0
-        player['hp'] -= max(1, boss['dmg'] - player['armor'])
-        if test:
-            print player
+def battle(thisState, winCost=float('inf')):
+    ''' Fight until player dies, boss dies, or player mana is all spent.'''
+    while True:
+        # execute effects at start of turn
+        result = runEffects(thisState)
+        if result:
+            # game over
+            if result < winCost:
+                # print winCost
+                return result
+            else:
+                return winCost
 
-    battle(player, boss, turn, activeEffects, manaSpent, winCosts, test)
+        if thisState.playerturn:
+            # execute player turn
+            thisState.playerturn = False
+            # cast a random spell
+            thisState.cast(random.choice(thisState.spellsAvailable()))
+
+        else:
+            # boss turn
+            thisState.playerturn = True
+            thisState.player['hp'] -= max(1, thisState.boss['dmg'] - thisState.player['armor'])
+            if thisState.player['hp'] <= 0:
+                # game over
+                break
+
+    return winCost
 
 if __name__ == '__main__':
     # 1. get puzzle input
@@ -58,14 +121,17 @@ if __name__ == '__main__':
                 boss['armor'] = int(m.group(1))
 
     player = {'hp':50, 'mana':500, 'armor':0}
+    manaspent = float('inf')
+    for i in xrange(1000000):
+        s = state(player, boss)
+        w = battle(s)
+        if w < manaspent:
+            print w
+            manaspent = w
 
-    # # test battle
-    # testPlayer = {'hp':8, 'dmg':5, 'armor':5}
-    # testBoss = {'hp':12, 'dmg':7, 'armor':2}
-    # testPlayer = {'hp':100, 'dmg':4, 'armor':0}
-    # testBoss = {'hp':100, 'dmg':8, 'armor':2}
-    # print battle(testPlayer, testBoss, True)
-    # exit(0)
+    print 'Answer to part 1: ' + str(manaspent)
 
-    print 'Answer to part 1: ' + ''
-    print 'Answer to part 2: ' + ''
+
+
+
+    # print 'Answer to part 2: ' + ''
