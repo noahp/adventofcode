@@ -17,6 +17,7 @@ class state(object):
         self.effects = copy.deepcopy(effects)
         self.manaspent = manaspent
         self.playerturn = playerturn
+        self.casts = []
 
     def canCast(self, spell):
         '''' Can the player cast the specified spell at this time?'''
@@ -30,6 +31,7 @@ class state(object):
 
     def cast(self, spell):
         # print spell
+        self.casts.append(spell[0])
         self.player['mana'] -= spell[1]
         self.manaspent += spell[1]
         # activate effect
@@ -52,6 +54,8 @@ def runEffects(thisState):
         thisState.effects['Shield'] -=1
         if thisState.effects['Shield'] == 0:
             del thisState.effects['Shield']
+    else:
+        thisState.player['armor'] = 0
     if 'Poison' in thisState.effects:
         thisState.boss['hp'] -= 3
         thisState.effects['Poison'] -=1
@@ -76,23 +80,28 @@ def runEffects(thisState):
 
     return 0
 
-def battle(thisState, winCost=float('inf')):
+def battle(thisState, winCost, hard=False):
     ''' Fight until player dies, boss dies, or player mana is all spent.'''
     while True:
+        # print thisState
+        # terminate early if this is already a worse solution
+        if thisState.manaspent >= winCost:
+            return winCost
+
         # execute effects at start of turn
+        if hard and thisState.playerturn:
+            thisState.player['hp'] -= 1
+            if thisState.player['hp'] <= 0:
+                return float('inf')
         result = runEffects(thisState)
         if result:
             # game over
-            if result < winCost:
-                # print winCost
-                return result
-            else:
-                return winCost
+            return result
 
         if thisState.playerturn:
             # execute player turn
             thisState.playerturn = False
-            # cast a random spell
+            # cast a random spell out of the options available at this time
             thisState.cast(random.choice(thisState.spellsAvailable()))
 
         else:
@@ -101,9 +110,7 @@ def battle(thisState, winCost=float('inf')):
             thisState.player['hp'] -= max(1, thisState.boss['dmg'] - thisState.player['armor'])
             if thisState.player['hp'] <= 0:
                 # game over
-                break
-
-    return winCost
+                return float('inf')
 
 if __name__ == '__main__':
     # 1. get puzzle input
@@ -122,16 +129,16 @@ if __name__ == '__main__':
 
     player = {'hp':50, 'mana':500, 'armor':0}
     manaspent = float('inf')
-    for i in xrange(1000000):
+    for i in xrange(10000000):
         s = state(player, boss)
-        w = battle(s)
+        w = battle(s, manaspent, False)
         if w < manaspent:
-            print w
+            print i, w
+            print s.casts
+            #print s.player, s.boss
             manaspent = w
 
     print 'Answer to part 1: ' + str(manaspent)
-
-
 
 
     # print 'Answer to part 2: ' + ''
