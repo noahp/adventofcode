@@ -49,14 +49,30 @@ if __name__ == '__main__':
 
     print 'Answer to part 1: ' + str(len(a))
 
+    # order the operations for maximum efficiency
+    ops.sort(key=lambda item: (-len(item[1]), item))
+    # extract operations that can produce 'e'
+    e_s = []
+    newops = []
+    for i in ops:
+        if i[0] == 'e':
+            e_s.append(i)
+        else:
+            newops.append(i)
 
-    # molecule = 'HOH'
-    # ops = [
-    #     ('e','H'),
-    #     ('e','O'),
-    #     ('H','HO'),
-    #     ('H','OH'),
-    #     ('O','HH'),
-    # ]
-    # too brute force, doesn't work
-    #print min(searchall(ops, 'e', molecule, 1))
+    subs = 0
+    while molecule != 'e':
+        for i in e_s:
+            if molecule == i[1]:
+                molecule = 'e'
+                subs += 1
+                break
+
+        for i in newops:
+            newmol = molecule.replace(i[1], i[0], 1)
+            if newmol != molecule:
+                molecule = newmol
+                subs += 1
+                break
+
+    print 'Answer to part 2: ' + str(subs)
