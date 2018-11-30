@@ -50,8 +50,11 @@ fn main() {
     ];
 
     let mut direction: i32 = 0;
-    let mut y: i32 = 0i32;
+    let mut y: i32 = 0;
     let mut x: i32 = 0;
+    let mut first_twice_visited_distance: i32 = 0;
+
+    let mut coords: Vec<(i32, i32)> = Vec::new();
     for step in vec {
         let (turn, distance) = step.split_at(1);
         let distance = distance.parse::<i32>().unwrap();
@@ -80,8 +83,18 @@ fn main() {
             _ => (),
         }
         println!("{} {}", x, y);
+
+        if coords.contains(&(x, y)) {
+            println!("second visit!");
+            if first_twice_visited_distance == 0 {
+                first_twice_visited_distance = x.abs() + y.abs();
+            }
+        } else {
+            coords.insert(0, (x, y));
+        }
     }
 
     // sum final x, y
     println!("delta: {}", x.abs() + y.abs());
+    println!("second visit: {}", first_twice_visited_distance);
 }
