@@ -32,6 +32,49 @@ fn increment(val: i32, max: i32) -> i32 {
     }
 }
 
+fn walk(
+    x: i32,
+    y: i32,
+    new_x: i32,
+    new_y: i32,
+    coords: &mut Vec<(i32, i32)>,
+) -> ((i32, i32), bool) {
+    // walk between points, appending each position as we go.
+    // return the first point hit that already exists in the coords
+    let mut result: (i32, i32) = (0, 0);
+    let mut found_dupe: bool = false;
+
+    println!("{}, {} -> {}, {}", x, y, new_x, new_y);
+
+    if x != new_x {
+        let distance = new_x - x;
+        let range = 1..distance.abs() + 1;
+        for i in range {
+            let new_pos = (if distance > 0 {x + i} else {x - i}, y);
+            println!("{:?}", new_pos);
+            if !found_dupe && coords.contains(&new_pos) {
+                result = new_pos;
+                found_dupe = true;
+            }
+            coords.insert(0, new_pos);
+        }
+    } else if y != new_y {
+        let distance = new_y - y;
+        let range = 1..distance.abs() + 1;
+        for i in range {
+            let new_pos = (x, if distance > 0 {y + i} else {y - i});
+            println!("{:?}", new_pos);
+            if !found_dupe && coords.contains(&new_pos) {
+                result = new_pos;
+                found_dupe = true;
+            }
+            coords.insert(0, new_pos);
+        }
+    }
+
+    return (result, found_dupe);
+}
+
 fn main() {
     // puzzle input
     let vec = vec![
@@ -52,7 +95,8 @@ fn main() {
     let mut direction: i32 = 0;
     let mut y: i32 = 0;
     let mut x: i32 = 0;
-    let mut first_twice_visited_distance: i32 = 0;
+    let mut secondvisit: (i32, i32) = (0, 0);
+    let mut found_second_visit: bool = false;
 
     let mut coords: Vec<(i32, i32)> = Vec::new();
     for step in vec {
@@ -67,34 +111,46 @@ fn main() {
             direction = increment(direction, 3);
         }
 
+        let mut new_y: i32 = y;
+        let mut new_x: i32 = x;
+
         match direction {
             0 => {
-                y = y + distance;
+                new_y = y + distance;
             }
             1 => {
-                x = x + distance;
+                new_x = x + distance;
             }
             2 => {
-                y = y - distance;
+                new_y = y - distance;
             }
             3 => {
-                x = x - distance;
+                new_x = x - distance;
             }
             _ => (),
         }
-        println!("{} {}", x, y);
 
-        if coords.contains(&(x, y)) {
-            println!("second visit!");
-            if first_twice_visited_distance == 0 {
-                first_twice_visited_distance = x.abs() + y.abs();
+        // walk!
+        println!("{} {}", new_x, new_y);
+        let (result, found) = walk(x, y, new_x, new_y, &mut coords);
+        if found {
+            println!("found second visit: {:?}", result);
+            if !found_second_visit {
+                secondvisit = result.clone();
+                found_second_visit = true;
             }
-        } else {
-            coords.insert(0, (x, y));
         }
+
+        x = new_x;
+        y = new_y;
     }
 
     // sum final x, y
-    println!("delta: {}", x.abs() + y.abs());
-    println!("second visit: {}", first_twice_visited_distance);
+    println!("####");
+    println!("total delta: {}", x.abs() + y.abs());
+    println!(
+        "first second visit: {:?}, distance: {}",
+        secondvisit,
+        secondvisit.0.abs() + secondvisit.1.abs()
+    );
 }
