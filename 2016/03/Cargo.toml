@@ -1,0 +1,6 @@
+[package]
+name = "day03"
+version = "0.1.0"
+authors = ["Noah Pendleton <2538614+noahp@users.noreply.github.com>"]
+
+[dependencies]
