@@ -29,8 +29,25 @@ For example, the real name for qzmt-zixmtkozy-ivhz-343 is very encrypted name.
 What is the sector ID of the room where North Pole objects are stored?
 """
 import sys
+import re
 
 if __name__ == "__main__":
+    ascii_lower = [
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+        's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    ]
+
     with open(sys.argv[1], 'r') as afile:
+        rgx = re.compile(r"(.*?)-(\d+)\[")
         for line in afile.readlines():
-            print(line)
+            m = rgx.search(line)
+            roomname = m.group(1)
+            roomid = int(m.group(2))
+            newroomname = []
+            for c in roomname:
+                if c != "-":
+                    c = ascii_lower[(ascii_lower.index(c) + roomid) % len(ascii_lower)]
+                newroomname.append(c)
+            newroomname = "".join(newroomname)
+            if "north" in newroomname:
+                print(newroomname, roomid)
