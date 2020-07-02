@@ -40,6 +40,14 @@
 use std::env;
 use std::fs::File;
 use std::io::{self, prelude::*, BufReader};
+use std::collections::HashMap;
+
+#[derive(Debug)]
+struct Bot {
+    number: u32,
+    high: u32,
+    low: u32,
+}
 
 fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
@@ -48,6 +56,8 @@ fn main() -> io::Result<()> {
         // open and iterate over lines
         let file = File::open(&args[1])?;
         let reader = BufReader::new(file);
+
+        let mut bots: HashMap<String, Bot> = HashMap::new();
 
         for line in reader.lines() {
             println!("{}", line?);
