@@ -58,18 +58,39 @@ the fourth Elf).
 
 Find the Elf carrying the most Calories. How many total Calories is that Elf
 carrying?
+
+--- Part Two ---
+By the time you calculate the answer to the Elves' question, they've already
+realized that the Elf carrying the most Calories of food might eventually run
+out of snacks.
+
+To avoid this unacceptable situation, the Elves would instead like to know the
+total Calories carried by the top three Elves carrying the most Calories. That
+way, even if one of those Elves runs out of snacks, they still have two backups.
+
+In the example above, the top three Elves are the fourth Elf (with 24000
+Calories), then the third Elf (with 11000 Calories), then the fifth Elf (with
+10000 Calories). The sum of the Calories carried by these three elves is 45000.
+
+Find the top three Elves carrying the most Calories. How many Calories are those
+Elves carrying in total?
 """
 
 import sys
 
+def get_cals(elfs):
+    return [sum([int(x) for x in y.split()]) for y in elfs]
+
 def main():
     with open(sys.argv[1], "r") as f:
-        input = f.read().split("\n\n")
+        data = f.read().split("\n\n")
 
-    max_cal = max([sum([int(x) for x in y.split()]) for y in input])
+    cals = get_cals(data)
+    max_cal = max(cals)
 
     print(f"part one: {max_cal}")
 
+    print(f"part two: {sum(sorted(cals)[-3:])}")
 
 if __name__ == "__main__":
     main()
