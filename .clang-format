@@ -1,0 +1,11 @@
+---
+BasedOnStyle: Google
+---
+Language: Cpp
+
+AlwaysBreakBeforeMultilineStrings: false
+ColumnLimit: '100'
+ContinuationIndentWidth: 2
+IndentPPDirectives: BeforeHash
+AllowShortFunctionsOnASingleLine: Empty
+...
